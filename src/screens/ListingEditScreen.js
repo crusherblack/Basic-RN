@@ -1,5 +1,5 @@
-import React from 'react';
-import {StyleSheet} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {StyleSheet, PermissionsAndroid} from 'react-native';
 import * as Yup from 'yup';
 
 import {
@@ -11,6 +11,8 @@ import {
 import CategoryPickerItem from '../components/CategoryPickerItem';
 import Screen from '../components/Screen';
 import FormImagePicker from '../components/forms/FormImagePicker';
+
+import Geolocation from 'react-native-geolocation-service';
 
 const validationSchema = Yup.object().shape({
   title: Yup.string().required().min(1).label('Title'),
@@ -78,6 +80,47 @@ const categories = [
 ];
 
 function ListingEditScreen() {
+  const [location, setLocation] = useState();
+
+  const requestCameraPermission = async () => {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        {
+          title: 'We Need Location Permission',
+          message:
+            'This App need you location' +
+            'so we can provide you lates information based on your location.',
+          buttonNeutral: 'Ask Me Later',
+          buttonNegative: 'Cancel',
+          buttonPositive: 'OK',
+        },
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        Geolocation.getCurrentPosition(
+          (position) => {
+            const {latitude, longitude} = position.coords;
+
+            setLocation({latitude, longitude});
+          },
+          (error) => {
+            console.log(error.code, error.message);
+          },
+          {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
+        );
+      } else {
+        console.log('Camera permission denied');
+        alert('Please Allow Location Permission');
+      }
+    } catch (err) {
+      console.warn(err);
+    }
+  };
+
+  useEffect(() => {
+    requestCameraPermission();
+  }, []);
+
   return (
     <Screen style={styles.container}>
       <Form
@@ -88,7 +131,7 @@ function ListingEditScreen() {
           category: null,
           images: [],
         }}
-        onSubmit={(values) => console.log(values)}
+        onSubmit={(values) => console.log({values, location})}
         validationSchema={validationSchema}>
         <FormImagePicker name="images" />
         <FormField maxLength={255} name="title" placeholder="Title" />

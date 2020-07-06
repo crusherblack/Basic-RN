@@ -10,7 +10,7 @@ function AppTextInput({icon, width = '100%', ...otherProps}) {
     <View style={[styles.container, {width}]}>
       {icon && (
         <MaterialIcon
-          name="icon"
+          name={icon}
           size={20}
           color={defaultStyles.colors.medium}
           style={styles.icon}
@@ -32,6 +32,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 15,
     marginVertical: 10,
+
+    alignItems: 'center',
   },
   icon: {
     marginRight: 10,
